@@ -1,0 +1,15 @@
+[{
+    'name':'Portfolio 1',
+    'assets':[
+        {'name':'asset 1',
+        'assetClass':'equity',
+        'value':123232},
+        {'name':'asset 2',
+        'assetClass':'bonds',
+        'value':5454},
+        {'name':'asset 3',
+        'assetClass':'cash',
+        'value':877}
+    ]
+    }
+]

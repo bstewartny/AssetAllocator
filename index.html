@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Asset Allocator</title>
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <!-- <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+    -->
+    <link type="text/css" href="css/bootstrap.min.css" rel="stylesheet" />	
+    <link type="text/css" href="css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet" />	
+    <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
+    <script type="text/javascript" src="js/jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="js/jquery.tagcloud.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/jquery.flot.js"></script>
+    <script type="text/javascript" src="js/jquery.flot.pie.js"></script>
+    <script type="text/javascript" src="js/underscore.js"></script>
+    <script type="text/javascript" src="js/backbone.js"></script>
+    <script type="text/javascript" src="js/backbone.localStorage.js"></script>
+
+    <script type="text/javascript" src="js/models.js"></script>
+
+    <script type="text/template" id="portfolio-template">
+        <a href="#"><%=name%></a><i class="icon-remove" style="display:none"></i>
+    </script>    
+
+    <script type="text/template" id="asset-template">
+        <td><%=name%></td>
+        <td><%=assetClass%></td>
+        <td><%=currentAmount%></td>
+    </script>    
+    <script type="text/template" id="portfolio-detail-template">
+        <span class="portfolio-name"><%=name%></span>
+        <ul class="assets nav nav-list">
+            <% _.each(assets,function(asset){ %>
+                <li><a href='#'><%= asset.name %></a><img class="btn btn-mini </li>
+            <% }); %>
+        </ul>
+    </script>
+
+
+
+    <script>
+
+    function plotAllocation(portfolios)
+    {
+        $.plot($("#allocation_pie"),portfolios.sumAssetClasses(),
+        {
+            series:{
+                pie:{
+                    show:true
+                }
+            }
+        });
+    }
+
+    $(document).ready(function() {
+
+        $("#add-asset-btn").click(function(){
+            if(!window.portfolio) return;
+            var assetName=$("#add-asset-name").val();
+            var assetClass=$("#add-asset-class").val();
+            var assetValue=Number($("#add-asset-value").val());
+
+            if(!assetName || !assetClass || !assetValue)
+            {
+                alert("Please fill in all form fields.");
+                return;
+            }
+
+
+
+            window.portfolio.get('assets').push({'name':assetName,'assetClass':assetClass,'currentValue':assetValue});
+            window.portfolioAssetView.render();
+            window.portfolio.save();
+            plotAllocation(window.portfolios);
+            $("#add-asset-name").val('');
+            $("#add-asset-class").val('');
+            $("#add-asset-value").val('');
+        });
+
+        $("#portfolio-form").dialog({
+            autoOpen:false,
+            height:250,
+            width:250,
+            modal:true,
+            buttons:{
+                "Create a portfolio":function(){
+                    var portfolio=portfolios.create({'name':$('#portfolio-name').val()});
+                    portfolio.save();
+                    portfolioListView.appendPortfolio(portfolio);
+                    $('#portfolio-name').val('');
+                    plotAllocation(portfolios); 
+                    $(this).dialog("close");
+                }
+                ,
+                Cancel:function(){
+                    $(this).dialog("close");
+                }
+            },
+            close:function()
+            {
+            }
+        });
+
+            $('#add-portfolio').click(function(){
+                $("#portfolio-form").dialog("open"); 
+            });
+
+            
+            plotAllocation(portfolios);
+
+      });
+    </script>
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+    }
+
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+
+      .hero-unit {
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+        -webkit-border-radius: 6px;
+        -moz-border-radius: 6px;
+        border-radius: 6px;
+      }
+      .hero-unit h2 {
+        margin-bottom: 0;
+        font-size: 20px;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .hero-unit p {
+        font-size: 14px;
+
+        font-weight: 200;
+        line-height: 22px;
+      }
+
+      .mlt a
+      {
+        color:#00FF00;
+        text-decoration: none
+      }
+      .title
+      {
+        /*font-family:monospace;*/
+        color:black;
+        font-weight:bold;
+        /*font-size:13px;*/
+    }
+    div.graph
+    {
+        width:400px;
+        height:300px;
+        float:left;
+        border:1px dashed gainsboro;
+    }
+    </style>	
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Asset Allocator</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <ul class="breadcrumb">
+        <li>
+        <a href="/">Home</a> <span class="divider">/</span>
+        </li>
+      </ul>
+
+      
+      <div class="row-fluid">
+        <div class="span2">
+          <div class="well sidebar-nav">
+            <ul id="portfolios" class="nav nav-list">
+                <li class="nav-header">Portfolios</li>
+            </ul>
+            <a class="btn" id="add-portfolio">Add Portfolio</a>
+          </div> 
+        </div>
+        <div class="span10">
+            <div class="row-fluid">
+                <div class="well span6">
+                    <table class="table table-striped table-bordered table-hover">
+                        <caption id="portfolio-detail-name"></caption>
+                        <thead>
+                            <tr><th>Name</th>
+                                <th>Asset class</th>
+                                <th>Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    <tbody id="portfolio-assets">
+                    </tbody>
+                </table>
+                    <form class="form-inline">
+                        <input type="text" id="add-asset-name" class="input-small" placeholder="Asset name">
+                        <input type="text" id="add-asset-class" class="input-small" placeholder="Asset class">
+                        <input type="number" id="add-asset-value" class="input-small" placeholder="Amount">
+                        <button id="add-asset-btn" type="submit" class="btn">Add asset</button>
+                    </form>
+                </div>
+              <div class="span6">
+                    <div id="allocation_pie" class="graph">
+                    </div>
+              </div>
+          </div>
+      </div>
+        </div>
+
+      </div>
+    </div>
+</body>
+
+
+<div id="portfolio-form" title="Create new portfolio">
+    <form>  
+        <fieldset>
+            <label for="portfolio-name">Name</label>
+            <input type="text" name="portfolio-name" id="portfolio-name" class="text ui-widget-content ui-corner-all"/>
+        </fieldset>
+    </form>
+</div>
+</html>
+
+
