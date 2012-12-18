@@ -61,7 +61,6 @@
         },
         
         addAsset:function(asset){
-            console.log('portfolio.addAsset');
             this.get('assets').push(asset);
             this.trigger('changeassets',asset);
             this.save();
@@ -135,12 +134,9 @@
                 "click .add-asset-btn":"addAsset", 
                 "keypress .currentValue":"updateOnEnter",
                 "blur .currentValue":"close"
-            
-            
             },
 
             addAsset:function(){
-                try{
                 var portfolio=this.model;
                 if(!portfolio) return false;
                 var name=this.$('.add-asset-name').val();
@@ -156,11 +152,6 @@
                 this.$('.add-asset-class').val('');
                 this.$('.add-asset-value').val('');
                 this.render();
-                }
-                catch(e)
-                {
-                    console.log(e);
-                }
                 return false; 
             },
             updateOnEnter:function(e){
@@ -185,13 +176,12 @@
                 this.model.bind('change',this.render);
             },
             renderChart:function(){
-                            try{
-                $.plot(this.$('.portfolio-allocation-pie'),this.model.sumAssetClasses(),{ series:{pie:{show:true}}   });
-                            }
-                            catch(e)
-                            {
-                                console.log('renderChart failed');
-                            }
+                try{
+                    $.plot(this.$('.portfolio-allocation-pie'),this.model.sumAssetClasses(),{ series:{pie:{show:true}}   });
+                }
+                catch(e)
+                {
+                }
             },
             render:function(){
                 $(this.el).html(this.template(this.model.toJSON()));
@@ -199,8 +189,6 @@
                 $.each(this.$('.currentValue'),function(i,input){
                     $(input).data('asset',assets[i]);
                 });
-                this.$('.portfolio-allocation-pie').data('portfolio',this.model);
-                //$.plot(this.$('.portfolio-allocation-pie'),this.model.sumAssetClasses(),{ series:{pie:{show:true}}   });
                 this.renderChart();
                 return this;
             }
@@ -211,11 +199,51 @@
             el:'#asset-allocation-profile',
             template:_.template($('#asset-allocation-profile-template').html()),
 
+            events:{
+                "click .add-asset-class-btn":"addAssetClass", 
+                "keypress .target":"updateOnEnter",
+                "blur .target":"close"
+            },
+            addAssetClass:function()
+            {
+                console.log('addAssetClass');
+                var profile=this.model;
+                if(!profile) return;
+                var assetClass=this.$(".profile-add-asset-class").val();
+                var assetTarget=Number(this.$(".profile-add-asset-target").val());
+
+                if(!assetClass || !assetTarget)
+                {
+                    alert("Please fill in all form fields.");
+                    return false;
+                }
+                profile.addAssetClass({'assetClass':assetClass,'target':assetTarget});
+                this.$(".profile-add-asset-class").val('');
+                this.$(".profile-add-asset-target").val('');
+                this.render();
+                return false;
+            },
+            updateOnEnter:function(e){
+              if(e.keyCode==13) {
+                  this.close();
+              }
+            },
+            close:function(e){
+                $.each(this.$('.target'),function(i,input){
+                    var assetClass=$(input).data('assetClass');
+                    if(assetClass)
+                    {
+                        assetClass.target=Number($(input).val());
+                    }
+                });
+                //this.model.trigger('changeassets',this);
+                this.model.save();
+            },
             initialize:function()
             {   
                 _.bindAll(this,'render');
             },
-            appendAssetClass:function(asset){
+            /*appendAssetClass:function(asset){
                 var that=this;
                 var assetValue=window.portfolios.getAssetClassValue(asset.assetClass);
 
@@ -227,10 +255,13 @@
                     .append($('<td>').append($('<i>',{'class':'icon-remove-sign'}).click(function(){if(confirm('Remove asset class '+asset.assetClass+'?')){ that.model.destroyAssetClass(asset);  }})).append(
                             $('<i>',{'class':'icon-edit'}).click(function(){alert('edit asset class:'+asset.assetClass);})
                     )));
-            },
+            },*/
             render:function(){
-                       console.log('render profile');
                 $(this.el).html(this.template(this.model.toJSON()));
+                var assetClasses=this.model.get('assetClasses');
+                $.each(this.$('.target'),function(i,input){
+                    $(input).data('assetClass',assetClasses[i]);
+                });
                   return this;
             }
         }
@@ -267,23 +298,17 @@
         window.portfolios.fetch();
         window.portfolios.each(function(portfolio){
             portfolio.on('changeassets',function(event){
-                console.log('changeassets fired');
                 window.profileView.render();
-                
                 plotAllocation(window.portfolios);
             });
         });
         window.portfolio=null;
         window.profile=null;
         window.portfolioListView.render();
-
-        
         window.profile=new AssetAllocationProfile();
         window.profile.load();
-
         window.profileView=new AssetAllocationProfileView({model:window.profile});
         window.profileView.render();
-
         window.profile.on('changeassetclasses',function(event){
             window.profileView.render();
         });

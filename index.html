@@ -3,24 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>Asset Allocator</title>
-
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
-    <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <!-- Le fav and touch icons -->
-    <!-- <link rel="shortcut icon" href="images/favicon.ico">
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
-    -->
     <link type="text/css" href="css/bootstrap.min.css" rel="stylesheet" />	
     <link type="text/css" href="css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet" />	
-    
     <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
     <script type="text/javascript" src="js/jquery.hotkeys.js"></script>
@@ -83,21 +67,20 @@
                 </thead>
                 <tbody id="asset-allocation-profile-assets">
                     <% _.each(assetClasses,function(assetClass){
-                        console.log('render profile template loop');
                         var assetValue=window.portfolios.getAssetClassValue(assetClass.assetClass);
                         %>
                         <tr>
                             <td><%=assetClass.assetClass%></td>
-                            <td><%=assetClass.target%></td>
+                            <td><input type="text" class="target input-small" value="<%=assetClass.target%>"/></td>
                             <td><%=assetValue.currentValue%></td>
                             <td><%=Math.floor(assetValue.percentage*100.0)%></td>
                             <td></td>
                         </tr>
                     <% });%>
                 <tr><form class="form-inline">
-                        <td><input type="text" id="profile-add-asset-class" class="input-small" placeholder="Asset class"></td>
-                        <td><input type="number" id="profile-add-asset-target" class="input-small" placeholder="Target %"></td>
-                        <td><button id="add-asset-class-btn" class="btn">Add asset class</button></td>
+                        <td><input type="text"  class="profile-add-asset-class input-small" placeholder="Asset class"></td>
+                        <td><input type="number"  class="profile-add-asset-target input-small" placeholder="Target %"></td>
+                        <td><button  class="add-asset-class-btn btn">Add asset class</button></td>
                 </form></tr>
                 </tbody>
             </table>
@@ -124,21 +107,6 @@
 
     $(document).ready(function() {
 
-        $("#add-asset-class-btn").click(function(){
-            if(!window.profile) return;
-            var assetClass=$("#profile-add-asset-class").val();
-            var assetTarget=Number($("#profile-add-asset-target").val());
-
-            if(!assetClass || !assetTarget)
-            {
-                alert("Please fill in all form fields.");
-                return;
-            }
-            window.profile.addAssetClass({'assetClass':assetClass,'target':assetTarget});
-            $("#profile-add-asset-class").val('');
-            $("#profile-add-asset-target").val('');
-            return false;
-        });
 
         $("#portfolio-form").dialog({
             autoOpen:false,
@@ -170,7 +138,6 @@
                 $("#portfolio-form").dialog("open"); 
             });
 
-            
             plotAllocation(portfolios);
 
       });
@@ -179,40 +146,7 @@
       body {
         padding-top: 60px;
         padding-bottom: 40px;
-    }
-
-    td{padding: 0;}
-
-      .sidebar-nav {
-        padding: 9px 0;
-      }
-
-      .hero-unit {
-        padding: 20px;
-        margin-bottom: 20px;
-        background-color: #f5f5f5;
-        -webkit-border-radius: 6px;
-        -moz-border-radius: 6px;
-        border-radius: 6px;
-      }
-      .hero-unit h2 {
-        margin-bottom: 0;
-        font-size: 20px;
-        line-height: 1;
-        letter-spacing: -1px;
-      }
-      .hero-unit p {
-        font-size: 14px;
-
-        font-weight: 200;
-        line-height: 22px;
-      }
-
-      .mlt a
-      {
-        color:#00FF00;
-        text-decoration: none
-      }
+        }
       .title
       {
         color:black;
@@ -249,10 +183,10 @@
             <div class="row-fluid" id="asset-allocation-profile">
             </div>
             <div class="row-fluid" id="portfolios">
-                <!--<div class="well span8" id="portfolios">
-                </div>-->
-
-            <a class="btn" id="add-portfolio">Add Portfolio</a>
+            </div>
+            <div class="row-fluid" >
+                <a class="btn" id="add-portfolio">Add Portfolio</a>
+            </div>
           </div>
       </div>
         </div>
