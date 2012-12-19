@@ -186,8 +186,19 @@
             render:function(){
                 $(this.el).html(this.template(this.model.toJSON()));
                 var assets=this.model.get('assets');
+                var that=this;
                 $.each(this.$('.currentValue'),function(i,input){
                     $(input).data('asset',assets[i]);
+                });
+                $.each(this.$('.delete-asset'),function(i,icon){
+                    var asset=assets[i];
+                    $(icon).click(function(){
+                        if(confirm('Delete asset '+asset.name+'?'))
+                        {
+                            that.model.destroyAsset(asset);
+                            that.render();
+                        }
+                    });
                 });
                 this.renderChart();
                 return this;
@@ -236,33 +247,46 @@
                         assetClass.target=Number($(input).val());
                     }
                 });
-                //this.model.trigger('changeassets',this);
                 this.model.save();
             },
             initialize:function()
             {   
                 _.bindAll(this,'render');
             },
-            /*appendAssetClass:function(asset){
-                var that=this;
-                var assetValue=window.portfolios.getAssetClassValue(asset.assetClass);
-
-                $('#asset-allocation-profile-assets').append($('<tr>')
-                    .append($('<td>',{'text':asset.assetClass}))
-                    .append($('<td>',{'text':asset.target}))
-                    .append($('<td>',{'text':assetValue.currentValue}))
-                    .append($('<td>',{'text':Math.floor(assetValue.percentage*100.0)}))
-                    .append($('<td>').append($('<i>',{'class':'icon-remove-sign'}).click(function(){if(confirm('Remove asset class '+asset.assetClass+'?')){ that.model.destroyAssetClass(asset);  }})).append(
-                            $('<i>',{'class':'icon-edit'}).click(function(){alert('edit asset class:'+asset.assetClass);})
-                    )));
-            },*/
+            renderChart:function(){
+                console.log('renderChart');
+                try{
+                    $.plot(this.$('.total-allocation-pie'),window.portfolios.sumAssetClasses(),{ series:{pie:{show:true}},grid:{hoverable:true}   });
+                    var that=this;
+                    this.$('.total-allocation-pie').bind('plothover',function(event,pos,obj){
+                       if(!obj) return;
+                       var pct=parseFloat(obj.series.percent).toFixed(2);
+                       that.$('.total-allocation-pie-hover').html('<span style="color:'+obj.series.color+'">'+obj.series.label+' ('+pct+'%)</span>');
+                    });
+                }
+                catch(e)
+                {
+                    console.log('error in renderChart');
+                }
+            },
             render:function(){
                 $(this.el).html(this.template(this.model.toJSON()));
                 var assetClasses=this.model.get('assetClasses');
+                var that=this;
                 $.each(this.$('.target'),function(i,input){
                     $(input).data('assetClass',assetClasses[i]);
                 });
-                  return this;
+                $.each(this.$('.delete-asset-class'),function(i,icon){
+                    var assetClass=assetClasses[i];
+                    $(icon).click(function(){
+                        if(confirm('Delete asset class '+assetClass.assetClass+'?'))
+                        {
+                            that.model.destroyAssetClass(assetClass);
+                        }
+                    });
+                });
+                this.renderChart();
+                return this;
             }
         }
         );
@@ -292,14 +316,13 @@
         
         window.portfolios=new Portfolios();
         window.portfolios.bind('remove',function(event){
-            plotAllocation(window.portfolios);
+            window.profileView.render();
         });
         window.portfolioListView=new PortfolioListView({collection:window.portfolios});
         window.portfolios.fetch();
         window.portfolios.each(function(portfolio){
             portfolio.on('changeassets',function(event){
                 window.profileView.render();
-                plotAllocation(window.portfolios);
             });
         });
         window.portfolio=null;
@@ -310,7 +333,7 @@
         window.profileView=new AssetAllocationProfileView({model:window.profile});
         window.profileView.render();
         window.profile.on('changeassetclasses',function(event){
-            window.profileView.render();
+        window.profileView.render();
         });
     });
 })(jQuery);
